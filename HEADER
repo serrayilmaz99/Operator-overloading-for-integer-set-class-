@@ -1,0 +1,40 @@
+#ifndef HW5_H
+#define HW5_H
+#include <iostream>
+
+//I used MathVector.h and clockt.h in this file
+
+using namespace std;
+
+class IntegerSet
+{
+private:
+	int* ivector;
+	int size;
+
+public:
+	IntegerSet(); // constructor
+	IntegerSet(int); // constructor
+	IntegerSet(const IntegerSet &); // copy constructor
+	~IntegerSet(); // destructor
+	IntegerSet& operator=(const IntegerSet &); // assignment operator (=)
+	IntegerSet& operator+=(const IntegerSet &); 
+	IntegerSet operator*(IntegerSet &rhs); // intersection operator 
+	bool operator<=(const IntegerSet & rhs) const; // subset operator
+	IntegerSet operator+(int element ) const; // adding element
+	IntegerSet operator+(const IntegerSet&  ) const; // union operator
+
+	// start: taken from MathVector.h
+	void setElement(int, int); // set element in specified index
+	int getElement(int); // get element in specified index
+	void setSize(int); // set size of the vector
+	int getSize(); // get size of the vector
+	// end: taken from MathVector.h
+};
+
+ostream & operator<<(ostream & os, IntegerSet& rhs); // ostream operator
+bool operator<=(int element, IntegerSet &lhs); // element subset operator
+bool operator!=(IntegerSet & lhs, IntegerSet & rhs); // inequality operator
+
+
+#endif
