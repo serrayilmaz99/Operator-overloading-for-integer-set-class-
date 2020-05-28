@@ -1,0 +1,276 @@
+#include "hw5.h"
+#include <iostream>
+#include <vector>
+
+//I used MathVector.cpp and clockt.cpp in this file
+
+using namespace std;
+// start: taken from MathVector.h
+
+IntegerSet::IntegerSet()
+{
+	size = 0;
+	ivector = NULL;
+}
+
+// constructor with vector size
+IntegerSet::IntegerSet(int psize)
+{
+	ivector = new int[psize];
+	size = psize;
+	for(int i = 0; i < size; i++)
+	{
+		ivector[i] = i;
+	}
+}
+
+// destructor
+IntegerSet::~IntegerSet()
+{
+	size = 0;
+	delete[] ivector;
+}
+
+// copy constructor - deep copy
+IntegerSet::IntegerSet(const IntegerSet & copy)
+{
+	size = copy.size;
+	ivector = new int[size]; // deep copy
+
+	for(int i = 0; i < size; i++)
+	{
+		ivector[i] = copy.ivector[i];
+	}
+}
+// end: taken from MathVector.h
+
+bool operator!=(IntegerSet & lhs, IntegerSet & rhs )
+{
+	vector<bool>vec(lhs.getSize(), false);  // checking elements because their order can be mixed
+	if ( lhs.getSize() != rhs.getSize()) // if their sizes are different theres no way they can be equal so, we will not deal
+	{                                    // with range issues below
+		return true;
+	}
+
+	for(int i = 0; i < lhs.getSize(); i++)
+	{
+		for(int j = 0; j < lhs.getSize(); j++)
+		{
+			if ( lhs.getElement(j) == rhs.getElement(i))
+			{
+				vec[j] = true; // change false to true if theres a common element
+			}
+		}
+	}
+
+	for(int i = 0; i < lhs.getSize(); i++)
+	{
+		if ( vec[i] == false) // if theres false it means they have at least one different element it means theyre not equal
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+bool IntegerSet::operator<=(const IntegerSet & rhs ) const
+{
+	vector<bool>vec(size, false); // checking elements because their order can be mixed
+
+	for(int i = 0; i < rhs.size; i++)
+	{
+		for(int j = 0; j < size; j++)
+		{
+			if ( ivector[j] == rhs.ivector[i])
+			{
+				vec[j] = true; // it means the jth element of lhs is in the rhs
+			}
+		}
+	}
+
+	for(int i = 0; i < size; i++)
+	{
+		if ( vec[i] == false)
+		{
+			return false; // if theres at least one false it means lhs is not a subset of rhs
+		}
+	}
+	return true;
+}
+
+//start: taken from MathVector.cpp
+IntegerSet& IntegerSet::operator=(const IntegerSet & rhs) 
+{
+	if (this != &rhs) // if they are not already equal
+	{
+		// first delete left hand side
+		size = 0;
+		delete[] ivector;
+
+		// create new vector for left hand side
+		size = rhs.size;
+		ivector = new int[size];
+
+		for(int i = 0; i < size; i++)
+		{
+			ivector[i] = rhs.ivector[i]; // assign content
+		}
+	}
+
+	return *this;
+}
+//end: taken from MathVector.cpp
+
+// += operator
+IntegerSet& IntegerSet::operator+=(const IntegerSet & rhs)
+{
+	IntegerSet temp(size);
+	temp = *this;  // first we keep the lhs
+	for(int i = 0; i < rhs.size; i++)
+	{
+		temp = temp + rhs.ivector[i]; // then we add the elements of rhs one by one we send the parameters to + operation
+	}
+	*this = temp; // lhs should be updated
+	return *this; 
+}
+
+ostream& operator<< (ostream & os, IntegerSet& rhs)
+{
+	if ( rhs.getSize() == 0) // if set is empty
+	{
+		os<< "{"<< "}";
+		return os;
+	}
+	else
+	{
+		os<< "{";
+		for(int i = 0; i < rhs.getSize()-1; i++)
+		{
+			os << rhs.getElement(i) << ", " ; 
+		} 
+		os << rhs.getElement(rhs.getSize()-1) << "}";
+
+		return os;
+	}
+}
+
+IntegerSet IntegerSet::operator+(const IntegerSet& rhs) const
+{
+	IntegerSet result;
+	IntegerSet temp(size);
+	temp = *this;  // keeping lhs because lhs will not be changed when the operation ends
+	for(int i = 0; i < rhs.size; i++)
+	{
+		temp = temp + rhs.ivector[i]; // then we add the elements of rhs one by one we send the parameters to + operation
+	}
+	return temp; // this is the union of lhs and rhs
+}
+
+IntegerSet IntegerSet::operator*(IntegerSet & rhs) 
+{
+	int count = 0;
+	for(int i = 0; i < rhs.size; i++)
+	{
+		for(int j = 0; j < size; j++)
+		{
+			if ( ivector[j] == rhs.ivector[i])
+			{
+				count++; // size of intersection set
+			}
+		}
+	}
+	IntegerSet result(count);
+	int count2 = 0; // to trace the index of intersection set
+
+	for(int i = 0; i < rhs.size; i++)
+	{
+		for(int j = 0; j < size; j++)
+		{
+			if ( ivector[j] == rhs.ivector[i])
+			{
+				result.ivector[count2] = ivector[j];  // adding common elements
+				count2++;
+			}
+		}
+	}
+	return result;
+}
+
+IntegerSet IntegerSet::operator+(int element) const
+{
+	if (size == 0) // if size is 0, set the number the first element
+	{
+		IntegerSet result(1);
+		result.ivector[0] = element;
+		return result;
+	}
+	else 
+	{
+		bool check = true;
+		for(int i = 0; i < size; i++)
+	    {
+			if ( element == ivector[i]) // if element is already in the set we shouldnt add it to set
+			{
+				check = false;
+			}
+		}
+		if (check == true) // if element is not in the set before
+		{
+			IntegerSet result(size+1); // we'll add the element at the end of the set
+			result.ivector[result.size-1] = element;
+			for(int i = 0; i < size; i++)
+			{
+				result.ivector[i] = ivector[i]; // equalize the lhs to rhs
+			}
+			return result;
+		}
+		else
+		{
+			IntegerSet result(size); // if element is already in the set we'll not add the element
+			for(int i = 0; i < size; i++)
+			{
+				result.ivector[i] = ivector[i];
+			}
+			return result;
+		}
+	}		
+}
+
+bool operator<=( int element, IntegerSet & lhs)
+{
+	for(int i = 0; i < lhs.getSize(); i++)
+	{
+		if ( element == lhs.getElement(i)) // if element is in the set
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+////start: taken from MathVector.cpp
+// set element in the specified index
+void IntegerSet::setElement(int index, int element)
+{
+	ivector[index] = element;
+}
+
+// set size of the vector
+void IntegerSet::setSize(int psize)
+{
+	size = psize;
+	ivector = new int[size];
+}
+
+// get size of the vector
+int IntegerSet::getSize()
+{
+	return size;
+}
+
+// get element in the specified index
+int IntegerSet::getElement(int index)
+{
+	return ivector[index];
+}
+//end: taken from MathVector.cpp
